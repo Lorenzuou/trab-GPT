@@ -94,6 +94,9 @@ function update() {
 
 // Define a function to handle mouse clicks
 function handleClick(event) {
+
+
+
     // Get the mouse position relative to the canvas
     var mouseX = event.clientX - canvas.offsetLeft;
     var mouseY = event.clientY - canvas.offsetTop;
@@ -102,22 +105,27 @@ function handleClick(event) {
     var boardX = Math.floor(mouseX / squareSize);
     var boardY = Math.floor(mouseY / squareSize);
 
+    if (turn == 2) {
+        update();
+    }
+
     // Check if the board coordinates are valid
     if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
+
         // Get the value of the board at the clicked position
         var value = board[boardY][boardX];
 
-        // If there is no selected piece, then try to select one
-        if (!selectedPiece) {
+        // // If there is no selected piece, then try to select one
+        // if (!selectedPiece) {
             // Check if there is a piece at the clicked position
-            if (value != 0) {
-                // Set the selected piece to be the clicked position and value
-                selectedPiece = {x: boardX, y: boardY, value: value};
-            }
-        } else {
+        if (value != 0) {
+            // Set the selected piece to be the clicked position and value
+            selectedPiece = {x: boardX, y: boardY, value: value};
+        }
+        // } else {
             // If there is a selected piece, then try to move it
             // Check if the clicked position is empty
-            if (value == 0) {
+        if (value == 0 && selectedPiece) { 
                 // Check if the move is valid based on the rules of checkers
                 if (isValidMove(selectedPiece.x, selectedPiece.y, boardX, boardY)) {
                     // Move the selected piece to the clicked position
@@ -137,14 +145,22 @@ function handleClick(event) {
 
                     // Switch turns between red and blue players
                     turn = turn == 1 ? 2 : 1;
+
+                    // get play from api, send board
+                    gptPlays(board);
+
                 }
             }
-        }
+        // }
 
         // Update the game state
         update();
     }
 }
+
+
+
+
 
 // Define a function to check if a move is valid based on the rules of checkers
 function isValidMove(fromX, fromY, toX, toY) {
@@ -155,13 +171,13 @@ function isValidMove(fromX, fromY, toX, toY) {
     var direction = value == 1 ? 1 : -1;
 
     // Check if the move is diagonal and forward
-    if (toX - fromX == direction && toY - fromY == direction) {
+    if (toX - fromX == direction && toY - fromY == direction || toX - fromX == -direction && toY - fromY == direction) {
         // The move is valid
         return true;
     }
 
     // Check if the move is a jump move
-    if (toX - fromX == 2 * direction && toY - fromY == 2 * direction) {
+    if (toX - fromX == 2 * direction && toY - fromY == 2 * direction || toX - fromX == -2 * direction && toY - fromY == 2 * direction) {
         // Get the position of the jumped piece
         var jumpedX = (toX + fromX) / 2;
         var jumpedY = (toY + fromY) / 2;
@@ -176,9 +192,37 @@ function isValidMove(fromX, fromY, toX, toY) {
         }
     }
 
+
     // The move is invalid
     return false;
 }
+
+
+// mock api call
+function gptPlays(board) {
+
+    // get the board as a string
+    var boardString = boardToString(board);
+
+    // send the board to the api
+    fetch('http://localhost:5000/play', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({board: boardString}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Success:', data);
+        // update the board
+        updateBoard(data);
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
+}
+
 
 // Define a variable to store the selected piece
 var selectedPiece = null;
@@ -188,6 +232,9 @@ var turn = 1; // red goes first
 
 // Add an event listener for mouse clicks on the canvas
 canvas.addEventListener("click", handleClick);
+
+
+
 
 // Update the game state for the first time
 update();
