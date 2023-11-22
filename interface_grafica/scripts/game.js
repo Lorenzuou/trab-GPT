@@ -24,13 +24,25 @@ var cols = 8;
 
 // Define the initial positions of the pieces
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
+// var board = [
+//   [0, 1, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 1, 0, 1, 0, 1, 0],
+//   [0, 1, 0, 1, 0, 1, 0, 1],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [2, 0, 2, 0, 2, 0, 2, 0],
+//   [0, 2, 0, 2, 0, 2, 0, 2],
+//   [2, 0, 2, 0, 2, 0, 2 ,0]
+// ];
+
+
 var board = [
-  [0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0],
-  [0, 1, 0, 1, 0, 1, 0, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 3, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [2, 0, 2, 0, 2, 0, 2, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [2, 0, 4, 0, 2, 0, 2, 0],
   [0, 2, 0, 2, 0, 2, 0, 2],
   [2, 0, 2, 0, 2, 0, 2 ,0]
 ];
@@ -52,9 +64,13 @@ function boardToString(board) {
             if (value == 0) {
                 result += ".";
             } else if (value == 1) {
-                result += "X";
+                result += "x";
             } else if (value == 2) {
-                result += "O";
+                result += "o";
+            } else if (value == 3) {
+                result += "X"; // Red queen
+            } else if (value == 4) {
+                result += "O"; // Blue queen
             }
         }
 
@@ -65,7 +81,6 @@ function boardToString(board) {
     // Return the result string
     return result;
 }
-    
 
 
 // Define a function to draw the board
@@ -101,14 +116,26 @@ function drawPieces() {
                 var x = j * squareSize + squareSize / 2;
                 var y = i * squareSize + squareSize / 2;
 
-                // Determine the color of the piece based on its value
-                var color = value == 1 ? pieceColor1 : pieceColor2;
+                
+
+                // Determine the color of the piece based on its value, if mod 2 is 0, then it's red, else it's blue
+                var color = value % 2 == 0 ? pieceColor2 : pieceColor1;
 
                 // Draw a circle with the color and size of the piece
                 ctx.fillStyle = color;
                 ctx.beginPath();
                 ctx.arc(x, y, pieceSize, 0, Math.PI * 2);
                 ctx.fill();
+
+                if (value == 3 || value == 4) {
+                    // Draw a circle with the color and size of the piece
+                    ctx.fillStyle = "#ffffff";
+                    ctx.beginPath();
+                    ctx.arc(x, y, pieceSize * 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                
             }
         }
     }
@@ -218,9 +245,9 @@ function handleClick(event) {
     console.log("turn: " + turn);
     console.log("boardX: " + boardX + " boardY: " + boardY);
 
-    if (turn == 2) {
-        update();
-    }
+    // if (turn == 2) {
+    //     update();
+    // }
 
     // Check if the board coordinates are valid
     if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
