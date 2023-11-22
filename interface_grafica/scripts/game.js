@@ -11,6 +11,7 @@ document.body.appendChild(canvas);
 // Define the colors for the board and the pieces
 var boardColor1 = "#f0d9b5"; // light brown
 var boardColor2 = "#b58863"; // dark brown
+var pathColor = "#00f800"; // green
 var pieceColor1 = "#ff0000"; // red
 var pieceColor2 = "#0000ff"; // blue
 
@@ -21,6 +22,8 @@ var pieceSize = 20;
 // Define the number of rows and columns
 var rows = 8;
 var cols = 8;
+
+
 
 // Define the initial positions of the pieces
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
@@ -38,7 +41,7 @@ var cols = 8;
 
 var board = [
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 3, 0, 0, 0, 0, 0],
+  [0, 0, 3, 0, 0, 0, 1, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
@@ -102,6 +105,39 @@ function drawBoard() {
     }
 }
 
+
+// function that creates a arrow to show the possible moves if selected Piece is on
+function drawArrow() {
+
+    if (selectedPiece != null) {
+ 
+        checkFunc = selectedPiece.value == 3 || selectedPiece.value == 4 ? isValidMoveForQueen : isValidMove;
+
+        // Loop through the rows and columns
+        for (var i = 0; i < rows; i++) {
+            for (var j = 0; j < cols; j++){
+
+               // check if it would be a valid move
+                if (checkFunc(selectedPiece.x, selectedPiece.y, j, i)) {
+                      // Calculate the x and y coordinates of the top-left corner of the square
+                      var x = j * squareSize;
+                      var y = i * squareSize;
+    
+                      // Determine the color of the square based on its position
+                      var color = pathColor;
+    
+                      // Fill the square with the color
+                      ctx.fillStyle = color;
+                      ctx.fillRect(x, y, squareSize, squareSize);
+                }
+       
+            }
+        }
+    }
+}
+
+
+
 // Define a function to draw the pieces
 function drawPieces() {
     // Loop through the board array
@@ -138,6 +174,19 @@ function drawPieces() {
                 
             }
         }
+        //draw a underline under the selected piece
+        if (selectedPiece) {
+            // Calculate the x and y coordinates of the center of the piece
+            var x = selectedPiece.x * squareSize + squareSize / 2;
+            var y = selectedPiece.y * squareSize + squareSize / 2;
+
+            // Draw a circle with the color and size of the piece
+            ctx.strokeStyle = "#00ff00";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y, pieceSize, 0, Math.PI * 2);
+            ctx.stroke();
+        }
     }
 }
 
@@ -148,6 +197,8 @@ function update() {
 
     // Draw the board and the pieces
     drawBoard();
+    drawArrow();
+
     drawPieces();
 }
 
@@ -162,11 +213,137 @@ function checkIfQueen(board, x, y){
 
 }
 
-function isValidMoveForQueen(fromX, fromY, toX, toY) {
+
+
+
+
+// Define a function to handle mouse clicks
+function handleClick(event) {
+
+
+
+    // Get the mouse position relative to the canvas
+    var mouseX = event.clientX - canvas.offsetLeft;
+    var mouseY = event.clientY - canvas.offsetTop;
+
+    // Convert the mouse position to board coordinates
+    var boardX = Math.floor(mouseX / squareSize);
+    var boardY = Math.floor(mouseY / squareSize);
+
+    console.log("turn: " + turn);
+    console.log("boardX: " + boardX + " boardY: " + boardY);
+
+    // if (turn == 2) {
+    //     update();
+    // }
+
+    // Check if the board coordinates are valid
+    if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
+
+        // Get the value of the board at the clicked position
+        var value = board[boardY][boardX];
+
+        // // If there is no selected piece, then try to select one
+        // if (!selectedPiece) {
+            // Check if there is a piece at the clicked position
+        if (value != 0) {
+            // Set the selected piece to be the clicked position and value
+            selectedPiece = {x: boardX, y: boardY, value: value};
+
+        }
+
+        // } else {
+            // If there is a selected piece, then try to move it
+            // Check if the clicked position is empty
+        if (value == 0 && selectedPiece) { 
+
+                // check if queen
+                if (selectedPiece.value == 3 || selectedPiece.value == 4 ){
+                    checkFunc = isValidMoveForQueen;
+
+                }else{
+                    checkFunc = isValidMove;
+                }
+                // Check if the move is valid based on the rules of checkers
+                if (checkFunc(selectedPiece.x, selectedPiece.y, boardX, boardY)) {
+                    // Move the selected piece to the clicked position
+                    board[boardY][boardX] = selectedPiece.value;
+                    board[selectedPiece.y][selectedPiece.x] = 0;
+
+                    // Check if there is a jump move involved
+                    if (Math.abs(boardX - selectedPiece.x) == 2) {
+                        // Remove the jumped piece from the board
+                        var jumpedX = (boardX + selectedPiece.x) / 2;
+                        var jumpedY = (boardY + selectedPiece.y) / 2;
+                        board[jumpedY][jumpedX] = 0;
+                    }
+                    
+                    // Deselect the piece
+                    selectedPiece = null;
+                    // check if the piece is a queen
+                    checkIfQueen(board, boardX, boardY);
+                    // Switch turns between red and blue players
+                    turn = turn == 1 ? 2 : 1;
+                    // get play from api, send board
+                    gptPlays(board);
+
+                }
+        }
+        // }
+
+        // Update the game state
+        update();
+    }
+}
+
+
+
+
+
+// Define a function to check if a move is valid based on the rules of checkers
+function isValidMove(fromX, fromY, toX, toY) {
     // Get the value of the piece being moved
     var value = board[fromY][fromX];
 
+    // Get the direction of movement based on the value of the piece
+    var direction = value == 1 ? 1 : -1;
 
+    // Check if the move is diagonal and forward
+    if (toX - fromX == direction && toY - fromY == direction || toX - fromX == -direction && toY - fromY == direction) {
+        // check if there is a piece in the destination
+        if (board[toY][toX] != 0) {
+            // The move is invalid
+            return false;
+        }
+        // The move is valid
+        return true;
+    }
+
+    // Check if the move is a jump move
+    if (toX - fromX == 2 * direction && toY - fromY == 2 * direction || toX - fromX == -2 * direction && toY - fromY == 2 * direction) {
+        // Get the position of the jumped piece
+        var jumpedX = (toX + fromX) / 2;
+        var jumpedY = (toY + fromY) / 2;
+
+        // Get the value of the jumped piece
+        var jumpedValue = board[jumpedY][jumpedX];
+
+        // Check if the jumped piece is of the opposite color
+        if (jumpedValue != 0 && jumpedValue != value) {
+            // The move is valid
+            return true;
+        }
+    }
+
+
+    // The move is invalid
+    return false;
+}
+
+
+function isValidMoveForQueen(fromX, fromY, toX, toY) {
+    // Get the value of the piece being moved
+    var value = board[fromY][fromX];
 
 
     // Check if the move is a jump move, only for queens
@@ -226,123 +403,6 @@ function isValidMoveForQueen(fromX, fromY, toX, toY) {
     // The move is invalid
     return false;
 }
-
-
-
-// Define a function to handle mouse clicks
-function handleClick(event) {
-
-
-
-    // Get the mouse position relative to the canvas
-    var mouseX = event.clientX - canvas.offsetLeft;
-    var mouseY = event.clientY - canvas.offsetTop;
-
-    // Convert the mouse position to board coordinates
-    var boardX = Math.floor(mouseX / squareSize);
-    var boardY = Math.floor(mouseY / squareSize);
-
-    console.log("turn: " + turn);
-    console.log("boardX: " + boardX + " boardY: " + boardY);
-
-    // if (turn == 2) {
-    //     update();
-    // }
-
-    // Check if the board coordinates are valid
-    if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
-
-        // Get the value of the board at the clicked position
-        var value = board[boardY][boardX];
-
-        
-
-        // // If there is no selected piece, then try to select one
-        // if (!selectedPiece) {
-            // Check if there is a piece at the clicked position
-        if (value != 0) {
-            // Set the selected piece to be the clicked position and value
-            selectedPiece = {x: boardX, y: boardY, value: value};
-        }
-
-        // } else {
-            // If there is a selected piece, then try to move it
-            // Check if the clicked position is empty
-        if (value == 0 && selectedPiece) { 
-
-                
-
-                // Check if the move is valid based on the rules of checkers
-                if (isValidMove(selectedPiece.x, selectedPiece.y, boardX, boardY)) {
-                    // Move the selected piece to the clicked position
-                    board[boardY][boardX] = selectedPiece.value;
-                    board[selectedPiece.y][selectedPiece.x] = 0;
-
-                    // Check if there is a jump move involved
-                    if (Math.abs(boardX - selectedPiece.x) == 2) {
-                        // Remove the jumped piece from the board
-                        var jumpedX = (boardX + selectedPiece.x) / 2;
-                        var jumpedY = (boardY + selectedPiece.y) / 2;
-                        board[jumpedY][jumpedX] = 0;
-                    }
-                    
-                    // Deselect the piece
-                    selectedPiece = null;
-                    // check if the piece is a queen
-                    checkIfQueen(board, boardX, boardY);
-                    // Switch turns between red and blue players
-                    turn = turn == 1 ? 2 : 1;
-                    // get play from api, send board
-                    gptPlays(board);
-
-                }
-            }
-        // }
-
-        // Update the game state
-        update();
-    }
-}
-
-
-
-
-
-// Define a function to check if a move is valid based on the rules of checkers
-function isValidMove(fromX, fromY, toX, toY) {
-    // Get the value of the piece being moved
-    var value = board[fromY][fromX];
-
-    // Get the direction of movement based on the value of the piece
-    var direction = value == 1 ? 1 : -1;
-
-    // Check if the move is diagonal and forward
-    if (toX - fromX == direction && toY - fromY == direction || toX - fromX == -direction && toY - fromY == direction) {
-        // The move is valid
-        return true;
-    }
-
-    // Check if the move is a jump move
-    if (toX - fromX == 2 * direction && toY - fromY == 2 * direction || toX - fromX == -2 * direction && toY - fromY == 2 * direction) {
-        // Get the position of the jumped piece
-        var jumpedX = (toX + fromX) / 2;
-        var jumpedY = (toY + fromY) / 2;
-
-        // Get the value of the jumped piece
-        var jumpedValue = board[jumpedY][jumpedX];
-
-        // Check if the jumped piece is of the opposite color
-        if (jumpedValue != 0 && jumpedValue != value) {
-            // The move is valid
-            return true;
-        }
-    }
-
-
-    // The move is invalid
-    return false;
-}
-
 
 
 function gptUpdateBoard() {
