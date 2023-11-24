@@ -27,28 +27,28 @@ var cols = 8;
 
 // Define the initial positions of the pieces
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
-// var board = [
-//   [0, 1, 0, 1, 0, 1, 0, 1],
-//   [1, 0, 1, 0, 1, 0, 1, 0],
-//   [0, 1, 0, 1, 0, 1, 0, 1],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [2, 0, 2, 0, 2, 0, 2, 0],
-//   [0, 2, 0, 2, 0, 2, 0, 2],
-//   [2, 0, 2, 0, 2, 0, 2 ,0]
-// ];
-
-
 var board = [
+  [0, 1, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+  [0, 1, 0, 1, 0, 1, 0, 1],
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 3, 0, 0, 0, 1, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [2, 0, 4, 0, 2, 0, 2, 0],
+  [2, 0, 2, 0, 2, 0, 2, 0],
   [0, 2, 0, 2, 0, 2, 0, 2],
   [2, 0, 2, 0, 2, 0, 2 ,0]
 ];
+
+
+// var board = [
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 3, 0, 0, 0, 1, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [2, 0, 4, 0, 2, 0, 2, 0],
+//   [0, 2, 0, 2, 0, 2, 0, 2],
+//   [2, 0, 2, 0, 2, 0, 2 ,0]
+// ];
 
 
 // Define a function that takes a board array as a parameter and returns a string
@@ -83,6 +83,45 @@ function boardToString(board) {
 
     // Return the result string
     return result;
+}
+
+function stringToBoard(str) {
+    // Split the string into an array of rows
+    var rows = str.trim().split("\n");
+
+    // Initialize the board array
+    var board = [];
+
+    // Loop through the rows
+    for (var i = 0; i < rows.length; i++) {
+        // Initialize an array for the current row
+        var row = [];
+
+        // Loop through the characters in the current row
+        for (var j = 0; j < rows[i].length; j++) {
+            // Get the character at the current position
+            var char = rows[i][j];
+
+            // Check the character and push the corresponding value to the row array
+            if (char === ".") {
+                row.push(0);
+            } else if (char === "x") {
+                row.push(1);
+            } else if (char === "o") {
+                row.push(2);
+            } else if (char === "X") {
+                row.push(3);
+            } else if (char === "O") {
+                row.push(4);
+            }
+        }
+
+        // Push the row array to the board array
+        board.push(row);
+    }
+
+    // Return the resulting board array
+    return board;
 }
 
 
@@ -443,7 +482,7 @@ function gptUpdateBoard() {
 // mock api call
 function gptPlays(board) {
 
-    gptUpdateBoard();
+    // gptUpdateBoard();
     // get the board as a string
     var boardString = boardToString(board);
     console.log(boardString)
