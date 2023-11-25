@@ -173,15 +173,10 @@ function getJmpSquares(x, y, rows, cols) {
     return jmp_squares;
 }
 
-
-
-// function that creates a arrow to show the possible moves if selected Piece is on
-function drawArrow() {
-
+function getPossibleActions(selectedPiece){
+    var moves = [];
     if (selectedPiece != null) {
- 
         checkFunc = selectedPiece.value == 3 || selectedPiece.value == 4 ? isValidMoveForQueen : isValidMove;
-
 
         // check if for any move, there is a jump 
         var has_jump = false;
@@ -200,42 +195,40 @@ function drawArrow() {
         if (has_jump) {
             jump_squares = getJmpSquares(selectedPiece.x, selectedPiece.y, rows, cols);
 
-            ctx.fillStyle = jumpColor
             for (var i = 0; i < jump_squares.length; i++) {
-                var x = jump_squares[i][0] * squareSize;
-                var y = jump_squares[i][1] * squareSize;
-                ctx.fillRect(x, y, squareSize, squareSize);
+                moves.push([jump_squares[i][1], jump_squares[i][0]]);
             }
             
         }else{ // if not, show all possible moves
 
-        // Loop through the rows and columns
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < cols; j++){
+            // Loop through the rows and columns
+            for (var i = 0; i < rows; i++) {
+                for (var j = 0; j < cols; j++){
 
-                 var options = checkFunc(selectedPiece.x, selectedPiece.y, j, i);
+                    var options = checkFunc(selectedPiece.x, selectedPiece.y, j, i);
 
-               // check if it would be a valid move
-                if (options[0]) {
-                      // Calculate the x and y coordinates of the top-left corner of the square
-                      var x = j * squareSize;
-                      var y = i * squareSize;
-    
-                      // Determine the color of the square based on its position
-                      var color = pathColor;
-    
-                      // Fill the square with the color
-                      ctx.fillStyle = color;
-                      ctx.fillRect(x, y, squareSize, squareSize);
+                // check if it would be a valid move
+                    if (options[0]) {
+                        moves.push([i,j]);
+                    }
+        
                 }
-       
             }
         }
     }
-    }
+    return moves
 }
 
-
+// function that creates a arrow to show the possible moves if selected Piece is on
+function drawArrow() {
+    moves = getPossibleActions(selectedPiece)
+    ctx.fillStyle = jumpColor
+    for(var i = 0; i < moves.length; i++){
+        var x = moves[i][1] * squareSize
+        var y = moves[i][0] * squareSize
+        ctx.fillRect(x, y, squareSize, squareSize)
+    }
+}
 
 // Define a function to draw the pieces
 function drawPieces() {
@@ -597,6 +590,25 @@ function gptUpdateBoard() {
     }else{ 
         return false;
     }
+}
+
+function getAllGPTActions(){
+    var allGptMoves = []
+    for(i = 0; i<board.length; i++){
+        for(j=0; j<board.length; j++){
+            selectedPiece = {x: i, y: j, value: board[i][j]};
+            if (selectedPiece.value == 1 || selectedPiece.value == 3){
+                moves = getPossibleActions(selectedPiece)
+                if(moves.length)
+                    allGptMoves.push({piece: selectedPiece, moves: moves})
+            }
+        }
+    }
+
+    for(var i = 0; i<allGptMoves.length; i++){
+        console.log(allGptMoves[i])
+    }
+    return allGptMoves
 }
 
 // mock api call
