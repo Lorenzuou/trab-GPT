@@ -596,18 +596,24 @@ function getAllGPTActions(){
     var allGptMoves = []
     for(i = 0; i<board.length; i++){
         for(j=0; j<board.length; j++){
-            selectedPiece = {x: i, y: j, value: board[i][j]};
-            if (selectedPiece.value == 1 || selectedPiece.value == 3){
-                moves = getPossibleActions(selectedPiece)
+            piece = {x: j, y: i, value: board[i][j]};
+            if (piece.value == 0){ 
+                continue;
+            }
+            if (piece.value == 1 || piece.value == 3){
+                console.log("red piece")
+                console.log(piece)
+                moves = getPossibleActions(piece)
+                console.log(moves)
                 if(moves.length)
-                    allGptMoves.push({piece: selectedPiece, moves: moves})
+                    allGptMoves.push({piece: piece, moves: moves})
             }
         }
     }
 
-    for(var i = 0; i<allGptMoves.length; i++){
-        console.log(allGptMoves[i])
-    }
+    // for(var i = 0; i<allGptMoves.length; i++){
+    //     console.log(allGptMoves[i])
+    // }
     return allGptMoves
 }
 
@@ -617,7 +623,7 @@ function gptPlays(board) {
     // gptUpdateBoard();
     // get the board as a string
     var boardString = boardToString(board);
-   
+    getAllGPTActions()
 
     // // send the board to the api
     // fetch('http://localhost:5000/play', {
