@@ -1,16 +1,28 @@
-from flask import Flask, request
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 from GPT import GPT
 
 app = Flask(__name__)
+CORS(app) 
 
 @app.route('/gptMove', methods=['POST'])
 def gpt_play():
-    moves = request.json 
-    gpt = GPT()
+    try:
+        data = request.json
+    except Exception as e:
+        print(f"Error parsing JSON: {e}")
+        return jsonify({'error': 'Invalid JSON format'}), 400
 
-    moves = '(2,1)/(3,0)\n2. (2,1)/(3,2)\n3. (2,3)/(3,2)\n4. (2,3)/(3,4)\n5. (2,5)/(3,4)\n6. (2,5)/(3,6)\n7. (2,7)/(3,6)'
-    
-    return gpt.gpt_play(moves)
+    if data is None:
+        return jsonify({'error': 'No JSON data received'}), 400
+
+    gpt = GPT()
+    gpt_play = gpt.gpt_play(data['plays'], data['board'])
+    print(gpt_play)
+
+    # Continue with your processing logic using the 'data' variable
+
+    return jsonify({'gpt_play': gpt_play})
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

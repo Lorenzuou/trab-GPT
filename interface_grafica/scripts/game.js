@@ -336,6 +336,8 @@ function checkIfQueen(board, x, y) {
     }
 }
 
+function movePiece(){}
+
 
 // Define a function to handle mouse clicks
 function handleClick(event) {
@@ -413,7 +415,7 @@ function handleClick(event) {
                     // Switch turns between red and blue players
                     turn = turn == 1 ? 2 : 1;
                     // get play from api, send board
-                    gptPlays(board);
+                    // gptPlays(board);
 
                 }
             
@@ -601,10 +603,7 @@ function getAllGPTActions(){
                 continue;
             }
             if (piece.value == 1 || piece.value == 3){
-                console.log("red piece")
-                console.log(piece)
                 moves = getPossibleActions(piece)
-                console.log(moves)
                 if(moves.length)
                     allGptMoves.push({piece: piece, moves: moves})
             }
@@ -617,13 +616,60 @@ function getAllGPTActions(){
     return allGptMoves
 }
 
+async function requestPlay(data){
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        // mode: 'no-cors',
+        body: JSON.stringify(data),
+    };
+
+    try {
+        const response = await fetch('http://127.0.0.1:8080/gptMove', options);
+        console.log('Request sent successfully.');
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            return data
+        } else {
+            console.error('Error:', response.status, response.statusText);
+            // Trate erros relacionados à resposta aqui
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        // Trate outros erros aqui
+    }
+}
+
 // mock api call
 function gptPlays(board) {
 
     // gptUpdateBoard();
     // get the board as a string
     var boardString = boardToString(board);
-    getAllGPTActions()
+    var moviments = getAllGPTActions()
+    var stringMoves = ''
+
+    var cont = 0
+    for(i=0; i<moviments.length; i++){
+        var piece = moviments[i].piece
+        for(j=0; j<moviments[i].moves.length; j++){
+            cont++
+            stringMoves += String(cont) + '. (' + String(piece.y) + ',' + String(piece.x) + ')/(' + String(moviments[i].moves[j][0]) + ',' + String(moviments[i].moves[j][1]) + ')\n'
+        }
+    }
+    
+    const data = {
+        board: boardString,
+        plays: stringMoves
+    };
+    
+    gpt_play = requestPlay(data)['gpt_play']
+    
 
     // // send the board to the api
     // fetch('http://localhost:5000/play', {
