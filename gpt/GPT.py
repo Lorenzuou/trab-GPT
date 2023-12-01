@@ -10,7 +10,6 @@ class GPT():
     def gpt_play(self, moves, board):
         string = self.base_string1 + board + self.base_string2 + moves + "Do not create new plays, choose one of those options for me."
         tokens = ''
-        print(string)
         
         output = replicate.run(
            "meta/codellama-7b-instruct:7bf2629623162c0cf22ace9ec7a94b34045c1cfa2ed82586f05f3a60b1ca2da5",
@@ -20,8 +19,11 @@ class GPT():
         for i in output:
             tokens += i
 
-        print(tokens)
-        return tokens
+        return self.select_answer(tokens, moves)
     
-    def select_answer(self, answer):
-        return answer.split()[1]
+    def select_answer(self, tokens, moves):
+        for move in moves.split():
+            if move in tokens:
+                return move
+
+        return None

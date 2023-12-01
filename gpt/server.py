@@ -18,8 +18,11 @@ def gpt_play():
 
     gpt = GPT()
     gpt_play = gpt.gpt_play(data['plays'], data['board'])
-
-    return jsonify({'gpt_play': gpt_play})
+    print(gpt_play)
+    if gpt_play != None:
+        return jsonify({'gpt_play': gpt_play})
+    else:
+        return jsonify({"error': 'GPT cound't make a correct play"}), 500 
 
 if __name__ == '__main__':
     app.run(debug=True, port=8080)

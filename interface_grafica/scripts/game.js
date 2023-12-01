@@ -336,7 +336,6 @@ function checkIfQueen(board, x, y) {
     }
 }
 
-function movePiece(){}
 
 
 // Define a function to handle mouse clicks
@@ -644,8 +643,38 @@ async function requestPlay(data){
     }
 }
 
+function makeGptMoviment(gptPlay){
+    console.log(gptPlay)
+    const fromX = parseInt(gptPlay[1])
+    const fromY = parseInt(gptPlay[3])
+    const toX = parseInt(gptPlay[7])
+    const toY = parseInt(gptPlay[9])
+
+    // check if movie is valid (from top to bottom)
+    if (isValidMove(fromX, fromY, toX, toY)) {
+        // Move the selected piece to the clicked position
+        board[toX][toY] = board[fromX][fromY];
+        board[fromX][fromY] = 0;
+
+        // Check if there is a jump move involved
+        if (Math.abs(toY - fromY) == 2) {
+            // Remove the jumped piece from the board
+            var jumpedY = (toY + fromY) / 2;
+            var jumpedX = (toX + fromX) / 2;
+            board[jumpedX][jumpedY] = 0;
+        }
+
+        // Switch turns between red and blue players
+        turn = turn == 1 ? 2 : 1;
+    }else{ 
+
+    }
+
+    update()
+}
+
 // mock api call
-function gptPlays(board) {
+async function gptPlays(board) {
 
     // gptUpdateBoard();
     // get the board as a string
@@ -658,7 +687,7 @@ function gptPlays(board) {
         var piece = moviments[i].piece
         for(j=0; j<moviments[i].moves.length; j++){
             cont++
-            stringMoves += String(cont) + '. (' + String(piece.y) + ',' + String(piece.x) + ')/(' + String(moviments[i].moves[j][0]) + ',' + String(moviments[i].moves[j][1]) + ')\n'
+            stringMoves += '(' + String(piece.y) + ',' + String(piece.x) + ')/(' + String(moviments[i].moves[j][0]) + ',' + String(moviments[i].moves[j][1]) + ')\n'
         }
     }
     
@@ -667,8 +696,14 @@ function gptPlays(board) {
         plays: stringMoves
     };
     
-    gpt_play = requestPlay(data)
-    console.log(gpt_play)
+    const gpt_play = await requestPlay(data)
+    try{
+        play =  gpt_play['gpt_play']
+        makeGptMoviment(play)
+    }
+    catch(error){
+        console.error('Error:', error);
+    }
     
 
     // // send the board to the api
