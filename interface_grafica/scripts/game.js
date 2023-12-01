@@ -398,7 +398,6 @@ function handleClick(event) {
                         didJump = true;
                     }
                 }
-
          
                 
                 if (options[0] &&  !(jumpMoves.length > 0 ^ didJump)){
