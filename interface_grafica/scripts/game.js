@@ -667,7 +667,8 @@ function gptPlays(board) {
         plays: stringMoves
     };
     
-    gpt_play = requestPlay(data)['gpt_play']
+    gpt_play = requestPlay(data)
+    console.log(gpt_play)
     
 
     // // send the board to the api

@@ -16,13 +16,8 @@ def gpt_play():
     if data is None:
         return jsonify({'error': 'No JSON data received'}), 400
 
-    # gpt = GPT()
-    # gpt_play = gpt.gpt_play(data['plays'], data['board'])
-
-
-    print(gpt_play)
-
-    # Continue with your processing logic using the 'data' variable
+    gpt = GPT()
+    gpt_play = gpt.gpt_play(data['plays'], data['board'])
 
     return jsonify({'gpt_play': gpt_play})
 
