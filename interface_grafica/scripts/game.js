@@ -71,14 +71,14 @@ var gptHasPlayed = true;
 
 // normal board
 var board = [
-    [0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 1, 0, 1, 0],
-    [0, 1, 0, 1, 0, 1, 0, 1],
     [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0], 
-    [2, 0, 2, 0, 2, 0, 2, 0],
-    [0, 2, 0, 2, 0, 2, 0, 2],
-    [2, 0, 2, 0, 2, 0, 2 ,0]
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0], 
+    [0, 0, 2, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0]
 ];
     
 
@@ -200,9 +200,17 @@ function drawBoard() {
     }
 }
 
+function writeEndGameMessage(){
+    var p = document.createElement("p");
+    p.style.margin = "10px";
+    p.style.padding = "10px";
+    p.innerHTML = "Game Over!"
+    div.appendChild(p);
+}
+
 function writeMessageFromGPT(){ 
     // add <p> to div
-    if (gptHasPlayed){
+    if (gptHasPlayed && current_message!=undefined){
     
         var p = document.createElement("p");
         p.style.margin = "10px";
@@ -343,6 +351,22 @@ function drawPieces() {
             ctx.stroke();
         }
     }
+}
+
+function gameDidEnd(){
+    var findRed = false
+    var findBlue = false
+    for(i=0; i<rows; i++){
+        for(j=0; j<rows; j++){
+            if(board[i][j] == 1 || board[i][j] == 3){
+                findRed = true
+            }else if(board[i][j] == 2 || board[i][j] == 4){
+                findBlue = true
+            }
+        }
+    }
+
+    return !(findBlue && findRed)
 }
 
 // Define a function to update the game state
@@ -529,7 +553,13 @@ function handleClick(event) {
 
                     // get play from api, send board
                     update();
-                    gptPlays(board);
+
+                    if(!gameDidEnd()){
+                        gptPlays(board);
+                    }
+                    else{
+                        writeEndGameMessage()
+                    }
 
                 }
             
@@ -829,8 +859,26 @@ async function gptPlays(board) {
     }
     gptHasPlayed = true;
     update()
-    
 
+    if(gameDidEnd()){
+        writeEndGameMessage()
+    }
+}
+
+function restartGame() {
+    board = [
+        [0, 1, 0, 1, 0, 1, 0, 1],
+        [1, 0, 1, 0, 1, 0, 1, 0],
+        [0, 1, 0, 1, 0, 1, 0, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0],
+        [2, 0, 2, 0, 2, 0, 2, 0],
+        [0, 2, 0, 2, 0, 2, 0, 2],
+        [2, 0, 2, 0, 2, 0, 2 ,0]
+    ];
+    var selectedPiece = null;
+
+    update()
 }
 
 
