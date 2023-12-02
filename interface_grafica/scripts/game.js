@@ -817,9 +817,6 @@ function makeGptMoviment(gptPlay){
         gptPlays(board);
 
     }
-
-
-    update()
 }
 
 // mock api call
@@ -876,8 +873,14 @@ function restartGame() {
         [0, 2, 0, 2, 0, 2, 0, 2],
         [2, 0, 2, 0, 2, 0, 2 ,0]
     ];
-    var selectedPiece = null;
+    while (div.firstChild) {
+        div.removeChild(div.firstChild);
+    }
 
+    current_message = 'Let\'s play!';
+    gptHasPlayed = true;
+    selectedPiece = null;
+    turn = 0
     update()
 }
 
