@@ -5,8 +5,43 @@ var ctx = canvas.getContext("2d");
 // Set the canvas size
 canvas.width = 400;
 canvas.height = 400;
-// Append the canvas to the document body
-document.body.appendChild(canvas);
+
+// create a div, which will receive the GPT reason to its play, so it will receive a text, make it a chat, add scroll and make the text fit
+var div = document.createElement("div");
+div.style.width = "400px";
+div.style.height = "200px";
+div.style.overflow = "auto";
+div.style.border = "1px solid #000000";
+div.style.backgroundColor = "#ffffff";  
+div.style.color = "#000000";
+div.style.fontFamily = "Arial";
+// text margin 
+div.style.margin = "10px";
+// text padding
+div.style.padding = "10px";
+div.style.fontSize = "18px";
+div.style.lineHeight = "16px";
+
+
+// Set the margin and padding of the div to zero
+div.style.margin = "0px";
+div.style.padding = "0px";
+
+var container = document.getElementById("game");
+
+// center container 
+container.style.display = "flex";
+container.style.justifyContent = "center";
+container.style.alignItems = "center";
+// flex direction column
+container.style.flexDirection = "column";
+container.appendChild(div);
+container.appendChild(canvas);
+
+
+//append div 
+var current_message = 'Let\'s play!';
+
 
 // Define the colors for the board and the pieces
 var boardColor1 = "#f0d9b5"; // light brown
@@ -27,20 +62,37 @@ var cols = 8;
 var turn = 0; //0 for blue, 1 for red
 
 
+var gptHasPlayed = true;
+
 
 
 // Define the initial positions of the pieces
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
+
+// normal board
 var board = [
-  [0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0],
-  [0, 1, 0, 1, 0, 1, 0, 1],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [2, 0, 2, 0, 2, 0, 2, 0],
-  [0, 2, 0, 2, 0, 2, 0, 2],
-  [2, 0, 2, 0, 2, 0, 2 ,0]
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0], 
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 2, 0, 2, 0, 2, 0, 2],
+    [2, 0, 2, 0, 2, 0, 2 ,0]
 ];
+    
+
+
+// var board = [
+//   [0, 1, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 1, 0, 1, 0, 1, 0],
+//   [0, 0, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 0, 0, 2, 0, 0, 0],
+//   [0, 2, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 2, 0, 2, 0, 2, 0],
+//   [0, 2, 0, 2, 0, 2, 0, 2],
+//   [2, 0, 2, 0, 2, 0, 2 ,0]
+// ];
 
 
 // var board = [
@@ -148,6 +200,20 @@ function drawBoard() {
     }
 }
 
+function writeMessageFromGPT(){ 
+    // add <p> to div
+    if (gptHasPlayed){
+    
+        var p = document.createElement("p");
+        p.style.margin = "10px";
+        p.style.padding = "10px";
+        p.innerHTML = current_message;
+        div.appendChild(p);
+        gptHasPlayed = false;
+    }   
+
+}
+
 function getJmpSquares(x, y, rows, cols) {
     value = board[y][x];
 
@@ -182,16 +248,10 @@ function getPossibleActions(selectedPiece){
         checkFunc = selectedPiece.value == 3 || selectedPiece.value == 4 ? isValidMoveForQueen : isValidMove;
 
         // check if for any move, there is a jump 
-        var has_jump = false;
-        for (var i = 0; i < rows; i++) {
-            for (var j = 0; j < cols; j++){
+        var jumpMovesForAll = checkAllJumpMoves(board, turn);
 
-                var options = checkFunc(selectedPiece.x, selectedPiece.y, j, i);
-
-                if (options[1]) {
-                    has_jump = true;
-                }
-            }
+        if (jumpMovesForAll.length > 0) {
+            var has_jump = true;
         }
 
         // if has jump, only show jump moves
@@ -293,10 +353,38 @@ function update() {
     // Draw the board and the pieces
     drawBoard();
     drawArrow();
+    writeMessageFromGPT();
 
     drawPieces();
 }
 
+
+
+// Check if, for a team, there is any jump move, return the movements if there is
+function checkAllJumpMoves(board, team) {
+    // Initialize an empty array to store the jump moves
+    var moves = [];
+
+    // Loop through the rows and columns
+    for (var i = 0; i < rows; i++) {
+        for (var j = 0; j < cols; j++){
+            // Get the value of the piece at the current position
+            var value = board[i][j];
+
+            // Check if the piece is of the current team
+            if (value % 2 == team) {
+                // Get the jump moves for the piece
+                var jumpMoves = getJmpSquares(j, i, rows, cols);
+
+                // Add the jump moves to the array
+                moves = moves.concat(jumpMoves);
+            }
+        }
+    }
+
+    // Return the array of jump moves
+    return moves;
+}
 
 
 function checkJumpMove(board, fromX, fromY, toX, toY) {
@@ -372,7 +460,30 @@ function handleClick(event) {
 
         }
 
+        var jumpMovesForAll = checkAllJumpMoves(board, turn);
+
         if (value == 0 && selectedPiece) { 
+
+                // if there are any jumoMoves, check if the clicked position is one of them
+                if (jumpMovesForAll.length > 0) {
+                    var isJumpMove = false;
+                    // check if the clicked position is one of the jump moves
+                    for (var i = 0; i < jumpMovesForAll.length; i++) {
+                        
+                        if (jumpMovesForAll[i][0] == boardX && jumpMovesForAll[i][1] == boardY) {
+                            isJumpMove = true;
+                        }
+
+
+                    }
+
+                    if (!isJumpMove) {
+                        // The move is invalid
+                        return;
+                    }
+                }
+
+
 
 
                 // check if queen
@@ -409,13 +520,13 @@ function handleClick(event) {
                     board[selectedPiece.y][selectedPiece.x] = 0;
 
 
-
                     checkIfQueen(board, boardX, boardY);
 
                     // Deselect the piece
                     selectedPiece = null;
-                    // Switch turns between red and blue players
-                    turn = turn == 1 ? 2 : 1;
+                    // Switch turns between red and blue players (0 for blue, 1 for red)
+                    turn  = turn == 1 ? 0 : 1;
+
                     // get play from api, send board
                     update();
                     gptPlays(board);
@@ -425,7 +536,7 @@ function handleClick(event) {
 
         }
         // }
-
+        console.log("turn " + turn)
         // Update the game state
         update();
     }
@@ -492,9 +603,6 @@ function isValidMove(fromX, fromY, toX, toY) {
 function isValidMoveForQueen(fromX, fromY, toX, toY) {
     // Get the value of the piece being moved
     var value = board[fromY][fromX];
-
-    var has_jump = false;
-
 
 
     // Check if the move is a jump move, only for queens
@@ -590,7 +698,7 @@ function gptUpdateBoard() {
         }
 
         // Switch turns between red and blue players
-        turn = turn == 1 ? 2 : 1;
+        turn = turn == 0 ? 1 : 0;
         return true;
     }else{ 
         return false;
@@ -607,7 +715,7 @@ function getAllGPTActions(){
             }
             if (piece.value == 1 || piece.value == 3){
                 moves = getPossibleActions(piece)
-                print(moves)
+                // print(moves)
                 if(moves.length)
                     allGptMoves.push({piece: piece, moves: moves})
             }
@@ -631,6 +739,7 @@ async function requestPlay(data){
     };
 
     try {
+       
         const response = await fetch('http://127.0.0.1:8080/gptMove', options);
         console.log('Request sent successfully.');
 
@@ -645,7 +754,7 @@ async function requestPlay(data){
         }
     } catch (error) {
         console.error('Error:', error);
-        // Trate outros erros aqui
+        return false
     }
 }
 
@@ -671,10 +780,14 @@ function makeGptMoviment(gptPlay){
         }
 
         // Switch turns between red and blue players
-        turn = turn == 1 ? 2 : 1;
+        turn = turn == 0 ? 1 : 0;
     }else{ 
+        console.log("invalid play")
+        // play again 
+        gptPlays(board);
 
     }
+
 
     update()
 }
@@ -687,7 +800,6 @@ async function gptPlays(board) {
     var boardString = boardToString(board);
     var moviments = getAllGPTActions()
     var stringMoves = ''
-    print(moviments)
 
     var cont = 0
     for(i=0; i<moviments.length; i++){
@@ -706,33 +818,19 @@ async function gptPlays(board) {
     const gpt_play = await requestPlay(data)
     try{
         play =  gpt_play['gpt_play']
+        //append current message
+        current_message = gpt_play['message']
         makeGptMoviment(play)
     }
     catch(error){
         console.error('Error:', error);
+        // play again
+        gptPlays(board);
     }
+    gptHasPlayed = true;
+    update()
     
 
-    // // send the board to the api
-    // fetch('http://localhost:5000/play', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({board: boardString}),
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     console.log('Success:', data);
-    //     // if movie is not valid, ask for another one
-    //     if (gptUpdateBoard(data)){ 
-    //         gptPlays(board);
-    //     }
-    //     ;
-    // })
-    // .catch((error) => {
-    //     console.error('Error:', error);
-    // });
 }
 
 

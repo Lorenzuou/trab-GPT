@@ -6,7 +6,6 @@ class GPT():
                             choose a play to keep playing. Here is the board: "
         self.base_string2 = "Here are the possible plays: \n"
 
-
     def gpt_play(self, moves, board):
         string = self.base_string1 + board + self.base_string2 + moves + "Do not create new plays, choose one of those options for me. After that, say why did you choose that play."
         tokens = ''
