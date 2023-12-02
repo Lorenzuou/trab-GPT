@@ -24,6 +24,9 @@ var pieceSize = 20;
 var rows = 8;
 var cols = 8;
 
+var turn = 0; //0 for blue, 1 for red
+
+
 
 
 // Define the initial positions of the pieces
@@ -42,13 +45,13 @@ var board = [
 
 // var board = [
 //   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 3, 0, 0, 0, 1, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 1, 0, 1, 0],
+//   [0, 0, 0, 0, 0, 2, 0, 0],
 //   [1, 0, 0, 0, 0, 0, 0, 0],
 //   [0, 0, 0, 1, 0, 0, 0, 0],
-//   [2, 0, 4, 0, 2, 0, 2, 0],
-//   [0, 2, 0, 2, 0, 2, 0, 2],
-//   [2, 0, 2, 0, 2, 0, 2 ,0]
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 0],
+//   [0, 0, 0, 0, 0, 0, 0 ,0]
 // ];
 
 
@@ -351,9 +354,10 @@ function handleClick(event) {
 
    
 
-    // if (turn == 2) {
-    //     update();
-    // }
+    if (turn == 1) {
+        console.log("not your turn")
+        return
+    }
 
     // Check if the board coordinates are valid
     if (boardX >= 0 && boardX < cols && boardY >= 0 && boardY < rows) {
@@ -413,7 +417,8 @@ function handleClick(event) {
                     // Switch turns between red and blue players
                     turn = turn == 1 ? 2 : 1;
                     // get play from api, send board
-                    // gptPlays(board);
+                    update();
+                    gptPlays(board);
 
                 }
             
@@ -602,6 +607,7 @@ function getAllGPTActions(){
             }
             if (piece.value == 1 || piece.value == 3){
                 moves = getPossibleActions(piece)
+                print(moves)
                 if(moves.length)
                     allGptMoves.push({piece: piece, moves: moves})
             }
@@ -681,6 +687,7 @@ async function gptPlays(board) {
     var boardString = boardToString(board);
     var moviments = getAllGPTActions()
     var stringMoves = ''
+    print(moviments)
 
     var cont = 0
     for(i=0; i<moviments.length; i++){
@@ -733,7 +740,6 @@ async function gptPlays(board) {
 var selectedPiece = null;
 
 // Define a variable to store the current turn
-var turn = 1; // red goes first
 
 // Add an event listener for mouse clicks on the canvas
 canvas.addEventListener("click", handleClick);

@@ -18,9 +18,8 @@ def gpt_play():
 
     gpt = GPT()
     gpt_play = gpt.gpt_play(data['plays'], data['board'])
-    print(gpt_play)
     if gpt_play != None:
-        return jsonify({'gpt_play': gpt_play})
+        return jsonify({'gpt_play': gpt_play[0], 'text': gpt_play[1]})
     else:
         return jsonify({"error': 'GPT cound't make a correct play"}), 500 
 
