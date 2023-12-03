@@ -29,6 +29,38 @@ div.style.padding = "0px";
 // Set the overflow auto
 div.style.overflow = "scroll";
 
+//restar button <button id="restartButton" onclick="restartGame()">Restart Game</button>
+var restartButton = document.createElement("button");
+restartButton.innerHTML = "Restart Game";
+restartButton.style.margin = "10px";
+restartButton.style.padding = "10px";
+restartButton.style.fontSize = "18px";
+restartButton.style.lineHeight = "16px";
+restartButton.style.backgroundColor = "#ffffff";
+restartButton.style.color = "#000000";
+restartButton.style.fontFamily = "Arial";
+restartButton.style.border = "1px solid #000000";
+restartButton.style.borderRadius = "5px";
+restartButton.style.cursor = "pointer";
+//set onhover color
+restartButton.onmouseover = function() {
+    restartButton.style.backgroundColor = "#000000";
+    restartButton.style.color = "#ffffff";
+};
+restartButton.onmouseleave = function() {
+    restartButton.style.backgroundColor = "#ffffff";
+    restartButton.style.color = "#000000";
+}
+
+restartButton.onclick = function() {
+    // blue color 
+    restartButton.style.backgroundColor = "#0000ff";
+    restartButton.style.color = "#ffffff";
+    
+    restartGame();
+};      
+
+
 
 
 var container = document.getElementById("game");
@@ -41,6 +73,8 @@ container.style.alignItems = "center";
 container.style.flexDirection = "column";
 container.appendChild(div);
 container.appendChild(canvas);
+container.appendChild(restartButton);
+
 
 
 //append div 
