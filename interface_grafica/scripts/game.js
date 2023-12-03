@@ -121,28 +121,28 @@ var gptHasPlayed = true;
     
 
 
-var board = [
-  [0, 1, 0, 1, 0, 1, 0, 1],
-  [1, 0, 1, 0, 1, 0, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 2, 0, 0, 0, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 2, 0, 2, 0],
-  [0, 2, 0, 2, 0, 2, 0, 2],
-  [2, 0, 2, 0, 2, 0, 2 ,0]
-];
-
-
 // var board = [
+//   [0, 1, 0, 1, 0, 1, 0, 1],
+//   [1, 0, 1, 0, 1, 0, 1, 0],
+//   [0, 0, 0, 0, 0, 0, 0, 1],
+//   [1, 0, 2, 0, 0, 0, 1, 0],
 //   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 1, 0, 1, 0],
-//   [0, 0, 0, 0, 0, 2, 0, 0],
-//   [1, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 1, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 0, 0, 0 ,0]
+//   [0, 0, 0, 0, 2, 0, 2, 0],
+//   [0, 2, 0, 2, 0, 2, 0, 2],
+//   [2, 0, 2, 0, 2, 0, 2 ,0]
 // ];
+
+
+var board = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 4, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 3, 0, 0 ,0]
+];
 
 
 // Define a function that takes a board array as a parameter and returns a string
@@ -297,21 +297,24 @@ function getJmpSquares(x, y, rows, cols) {
     return jmp_squares;
 }
 
-function getPossibleActions(selectedPiece){
+function getPossibleActions(piece){
     var moves = [];
-    if (selectedPiece != null) {
-        checkFunc = selectedPiece.value == 3 || selectedPiece.value == 4 ? isValidMoveForQueen : isValidMove;
+    let has_jump = false;
+    if (piece != null) {
+        checkFunc = piece.value == 3 || piece.value == 4 ? isValidMoveForQueen : isValidMove;
+        console.log(piece.x, piece.y)
 
         // check if for any move, there is a jump 
         var jumpMovesForAll = checkAllJumpMoves(board, turn);
 
         if (jumpMovesForAll.length > 0) {
-            var has_jump = true;
+            console.log("jump moves")
+            has_jump = true;
         }
 
         // if has jump, only show jump moves
         if (has_jump) {
-            jump_squares = getJmpSquares(selectedPiece.x, selectedPiece.y, rows, cols);
+            jump_squares = getJmpSquares(piece.x, piece.y, rows, cols);
 
             for (var i = 0; i < jump_squares.length; i++) {
                 moves.push([jump_squares[i][1], jump_squares[i][0]]);
@@ -323,7 +326,7 @@ function getPossibleActions(selectedPiece){
             for (var i = 0; i < rows; i++) {
                 for (var j = 0; j < cols; j++){
 
-                    var options = checkFunc(selectedPiece.x, selectedPiece.y, j, i);
+                    var options = checkFunc(piece.x, piece.y, j, i);
 
                 // check if it would be a valid move
                     if (options[0]) {
@@ -340,6 +343,8 @@ function getPossibleActions(selectedPiece){
 // function that creates a arrow to show the possible moves if selected Piece is on
 function drawArrow() {
     moves = getPossibleActions(selectedPiece)
+    console.log("Arrow moves")
+    console.log(moves)
     ctx.fillStyle = jumpColor
     for(var i = 0; i < moves.length; i++){
         var x = moves[i][1] * squareSize
@@ -485,7 +490,7 @@ function checkIfQueen(board, x, y) {
     // get the value of the piece
     var value = board[y][x];
 
-
+    console.log(value, y, rows - 1)
     
 
     // check if the piece is a red piece
@@ -501,6 +506,18 @@ function checkIfQueen(board, x, y) {
         console.log("blue queen")
         board[y][x] = 4;
     }
+}
+
+function eatPiece(jumpMoves, toX, toY, fromX, fromY, board){
+    var didJump = false;
+    for (var i = 0; i < jumpMoves.length; i++) {
+        if (jumpMoves[i][0] == toX && jumpMoves[i][1] == toY) {
+            didJump = true;
+            // Remove the jumped piece from the board
+            checkJumpMove(board, fromX, fromY, toX, toY);
+        }
+    }
+    return didJump
 }
 
 
@@ -540,7 +557,6 @@ function handleClick(event) {
 
         if (value == 0 && selectedPiece) { 
 
-               var possibleMoves = getPossibleActions(selectedPiece)
 
                if(jumpMovesForAll.length > 0){ 
                 // if the move is one of the possible moves
@@ -575,15 +591,8 @@ function handleClick(event) {
 
                 var didJump = false;
 
-                for (var i = 0; i < jumpMoves.length; i++) {
-                    if (jumpMoves[i][0] == boardX && jumpMoves[i][1] == boardY) {
-                        // Remove the jumped piece from the board
-                        var jumpedX = (boardX + selectedPiece.x) / 2;
-                        var jumpedY = (boardY + selectedPiece.y) / 2;
-                        board[jumpedY][jumpedX] = 0;
-                        didJump = true;
-                    }
-                }
+
+                didJump = eatPiece(jumpMoves, boardX, boardY, selectedPiece.x, selectedPiece.y, board)
          
                 
                 if (options[0] &&  !(jumpMoves.length > 0 ^ didJump)){
@@ -651,7 +660,7 @@ function isValidMove(fromX, fromY, toX, toY) {
     }
 
     // Check if the move is a jump move
-    if (toX - fromX == 2 * direction && toY - fromY == 2 * direction || toX - fromX == -2 * direction && toY - fromY == 2 * direction) {
+    if (Math.abs(toX - fromX) == 2  && Math.abs(toY - fromY) == 2  ) {
         // Get the position of the jumped piece
         var jumpedX = (toX + fromX) / 2;
         var jumpedY = (toY + fromY) / 2;
@@ -792,7 +801,7 @@ function getAllGPTActions(){
     var allGptMoves = []
     for(i = 0; i<board.length; i++){
         for(j=0; j<board.length; j++){
-            piece = {x: j, y: i, value: board[i][j]};
+            let piece = {x: j, y: i, value: board[i][j]};
             if (piece.value == 0){ 
                 continue;
             }
@@ -855,20 +864,15 @@ function makeGptMoviment(gptPlay){
         board[fromX][fromY] = 0;
 
         // Check if there is a jump move involved
-        if (Math.abs(toY - fromY) == 2) {
-            // Remove the jumped piece from the board
-            var jumpedY = (toY + fromY) / 2;
-            var jumpedX = (toX + fromX) / 2;
-            board[jumpedX][jumpedY] = 0;
-        }
+        var didJump = false;
+        var jumpMoves = getJmpSquares(fromX, fromY, rows, cols);
 
+        didJump = eatPiece(jumpMoves, toX, toY, fromX, fromY, board)
+        
+       
+        checkIfQueen(board,toY,toX);
         // Switch turns between red and blue players
         turn = turn == 0 ? 1 : 0;
-    }else{ 
-        console.log("invalid play")
-        // play again 
-        gptPlays(board);
-
     }
 }
 
@@ -880,6 +884,9 @@ async function gptPlays(board) {
     var boardString = boardToString(board);
     var moviments = getAllGPTActions()
     var stringMoves = ''
+
+    console.log(moviments.length)
+    console.log(moviments)
 
     var cont = 0
     for(i=0; i<moviments.length; i++){
@@ -894,6 +901,7 @@ async function gptPlays(board) {
         board: boardString,
         plays: stringMoves
     };
+
     
     const gpt_play = await requestPlay(data)
     try{
