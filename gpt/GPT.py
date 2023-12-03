@@ -7,7 +7,7 @@ class GPT():
         self.base_string2 = "Here are the possible plays: \n"
 
     def gpt_play(self, moves, board):
-        string = self.base_string1 + board + self.base_string2 + moves + "Do not create new plays, choose one of those options for me. After that, say why did you choose that play."
+        string = self.base_string1 + board + self.base_string2 + moves + "Do not create new plays, choose one of those options for me. After that, say why did you choose that play. Remember, you are not playing chess, you are playing checkers, so there is only one kind of pieces and eventually queens"
         tokens = ''
         
         

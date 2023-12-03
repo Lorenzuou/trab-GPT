@@ -26,6 +26,10 @@ div.style.lineHeight = "16px";
 // Set the margin and padding of the div to zero
 div.style.margin = "0px";
 div.style.padding = "0px";
+// Set the overflow auto
+div.style.overflow = "scroll";
+
+
 
 var container = document.getElementById("game");
 
@@ -70,29 +74,29 @@ var gptHasPlayed = true;
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
 
 // normal board
-var board = [
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 1, 0, 0, 0, 0], 
-    [0, 0, 2, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0]
-];
+// var board = [
+//     [0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 1, 0, 0, 0, 0], 
+//     [0, 0, 2, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 0]
+// ];
     
 
 
-// var board = [
-//   [0, 1, 0, 1, 0, 1, 0, 1],
-//   [1, 0, 1, 0, 1, 0, 1, 0],
-//   [0, 0, 0, 1, 0, 1, 0, 1],
-//   [1, 0, 0, 0, 2, 0, 0, 0],
-//   [0, 2, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 2, 0, 2, 0, 2, 0],
-//   [0, 2, 0, 2, 0, 2, 0, 2],
-//   [2, 0, 2, 0, 2, 0, 2 ,0]
-// ];
+var board = [
+  [0, 1, 0, 1, 0, 1, 0, 1],
+  [1, 0, 1, 0, 1, 0, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 1],
+  [1, 0, 2, 0, 0, 0, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 2, 0, 2, 0],
+  [0, 2, 0, 2, 0, 2, 0, 2],
+  [2, 0, 2, 0, 2, 0, 2 ,0]
+];
 
 
 // var board = [
@@ -205,7 +209,9 @@ function writeEndGameMessage(){
     p.style.margin = "10px";
     p.style.padding = "10px";
     p.innerHTML = "Game Over!"
+    div.scrollTop = div.scrollHeight;
     div.appendChild(p);
+    // let scroll to the bottom
 }
 
 function writeMessageFromGPT(){ 
@@ -213,11 +219,18 @@ function writeMessageFromGPT(){
     if (gptHasPlayed && current_message!=undefined){
     
         var p = document.createElement("p");
+
         p.style.margin = "10px";
         p.style.padding = "10px";
         p.innerHTML = current_message;
+        // add a line 
+        var hr = document.createElement("hr");
+        // set color of line red 
+        hr.style.color = "#ff0000";
+        div.appendChild(hr);
         div.appendChild(p);
         gptHasPlayed = false;
+        div.scrollTop = div.scrollHeight;
     }   
 
 }
@@ -240,7 +253,7 @@ function getJmpSquares(x, y, rows, cols) {
         for (var j = 0; j < cols; j++){
 
             var options = checkFunc(x, y, j, i);
-
+            
             if (options[1]) {
                 jmp_squares.push([j, i]);
             }
@@ -399,6 +412,11 @@ function checkAllJumpMoves(board, team) {
             if (value % 2 == team) {
                 // Get the jump moves for the piece
                 var jumpMoves = getJmpSquares(j, i, rows, cols);
+                if (jumpMoves.length > 0) {
+                    console.log("jump moves")
+                    console.log(jumpMoves)
+                }
+                
 
                 // Add the jump moves to the array
                 moves = moves.concat(jumpMoves);
@@ -488,26 +506,22 @@ function handleClick(event) {
 
         if (value == 0 && selectedPiece) { 
 
-                // if there are any jumoMoves, check if the clicked position is one of them
-                if (jumpMovesForAll.length > 0) {
-                    var isJumpMove = false;
-                    // check if the clicked position is one of the jump moves
-                    for (var i = 0; i < jumpMovesForAll.length; i++) {
-                        
-                        if (jumpMovesForAll[i][0] == boardX && jumpMovesForAll[i][1] == boardY) {
-                            isJumpMove = true;
-                        }
+               var possibleMoves = getPossibleActions(selectedPiece)
 
-
-                    }
-
-                    if (!isJumpMove) {
-                        // The move is invalid
-                        return;
+               if(jumpMovesForAll.length > 0){ 
+                // if the move is one of the possible moves
+                var didJump = false;
+                for(i = 0; i<jumpMovesForAll.length; i++){
+                    if(jumpMovesForAll[i][0] == boardX && jumpMovesForAll[i][1] == boardY){
+                        didJump = true;
                     }
                 }
 
-
+                if(!didJump){ 
+                    console.log("invalid move")
+                    return
+                }
+               }
 
 
                 // check if queen
@@ -583,6 +597,10 @@ function isValidMove(fromX, fromY, toX, toY) {
     var value = board[fromY][fromX];
     var team = value % 2
 
+    if (value == 0) {
+        return [false, false];
+    }
+
 
     // Get the direction of movement based on the value of the piece
     var direction = value == 1 ? 1 : -1;
@@ -606,7 +624,7 @@ function isValidMove(fromX, fromY, toX, toY) {
 
         // Get the value of the jumped piece
         var jumpedValue = board[jumpedY][jumpedX];
-
+   
         // Check if the jumped piece is of the opposite color
         if (jumpedValue % 2 != team && jumpedValue != 0) {
             // check if there is a piece in the destination
@@ -614,6 +632,7 @@ function isValidMove(fromX, fromY, toX, toY) {
                 // The move is invalid
                 return [false, false];
             }
+
 
             // The move is valid
             return [true, true];
