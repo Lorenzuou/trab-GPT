@@ -136,12 +136,12 @@ var gptHasPlayed = true;
 var board = [
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 4, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 3, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
   [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 3, 0, 0 ,0]
+  [0, 0, 0, 3, 0, 3, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 3, 0, 0, 0, 0, 0, 0],
+  [2, 0, 0, 0, 3, 0, 0 ,0]
 ];
 
 
@@ -271,7 +271,7 @@ function writeMessageFromGPT(){
 
 function getJmpSquares(x, y, rows, cols) {
     var value = board[y][x];
-    console.log("value jmp squares", value)
+    // console.log("value jmp squares", value)
     if (value == 0) {
         return [];
     }
@@ -316,18 +316,18 @@ function getPossibleActions(piece){
 
         if (piece.value == 3 || piece.value == 4 ){
             checkFunc = isValidMoveForQueen;
-            console.log("queen")
+            // console.log("queen")
 
         }else{
             checkFunc = isValidMove;
-            console.log("not queen")
+            // console.log("not queen")
         }
         // check if for any move, there is a jump 
         var jumpMovesForAll = checkAllJumpMoves(board, turn);
-        console.log("jump for all", jumpMovesForAll)
+        // console.log("jump for all", jumpMovesForAll)
 
         if (jumpMovesForAll.length > 0) {
-            console.log("jump moves")
+            // console.log("jump moves")
             has_jump = true;
         }
 
@@ -471,8 +471,8 @@ function checkAllJumpMoves(board, team) {
                 // Get the jump moves for the piece
                 var jumpMoves = getJmpSquares(j, i, rows, cols);
                 if (jumpMoves.length > 0) {
-                    console.log("jump moves")
-                    console.log(jumpMoves)
+                    // console.log("jump moves")
+                    // console.log(jumpMoves)
                 }
                 
 
@@ -488,8 +488,8 @@ function checkAllJumpMoves(board, team) {
 
 
 function checkJumpMove(board, fromX, fromY, toX, toY) {
-    console.log("check jump move")
-    console.log(board, fromX, fromY, toX, toY)
+    // console.log("check jump move")
+    // console.log(board, fromX, fromY, toX, toY)
     // get the diagonal direction from to 
     var directionX = toX - fromX > 0 ? 1 : -1;
     var directionY = toY - fromY > 0 ? 1 : -1;
@@ -510,28 +510,28 @@ function checkIfQueen(board, x, y) {
     // get the value of the piece
     var value = board[y][x];
 
-    console.log(value, y, rows - 1)
+    // console.log(value, y, rows - 1)
     
 
     // check if the piece is a red piece
     if (value == 1 && y == rows - 1) {
         // turn the piece into a queen
-        console.log("red queen")
+        // console.log("red queen")
         board[y][x] = 3;
     }
 
     // check if the piece is a blue piece
     if (value == 2 && y == 0) {
         // turn the piece into a queen
-        console.log("blue queen")
+        // console.log("blue queen")
         board[y][x] = 4;
     }
 }
 
 function eatPiece(jumpMoves, toX, toY, fromX, fromY, board){
     var didJump = false;
-    console.log("eat piece", toX, toY, fromX, fromY)
-    console.log(jumpMoves)
+    // console.log("eat piece", toX, toY, fromX, fromY)
+    // console.log(jumpMoves)
 
 
     for (var i = 0; i < jumpMoves.length; i++) {
@@ -630,18 +630,19 @@ function handleClick(event) {
                     // Deselect the piece
                     selectedPiece = null;
                     // Switch turns between red and blue players (0 for blue, 1 for red)
-                    turn  = turn == 1 ? 0 : 1;
 
                     // get play from api, send board
                     update();
-
-                    if(!gameDidEnd()){
-                        gptPlays(board);
+                    
+                    if(!getJmpSquares(boardX, boardY, rows, cols).length || !didJump){
+                        turn  = turn == 1 ? 0 : 1;
+                        if(!gameDidEnd()){
+                            gptPlays(board);
+                        }
+                        else{
+                            writeEndGameMessage()
+                        }
                     }
-                    else{
-                        writeEndGameMessage()
-                    }
-
                 }
             
 
@@ -842,9 +843,7 @@ function getAllGPTActions(){
         }
     }
 
-    // for(var i = 0; i<allGptMoves.length; i++){
-    //     console.log(allGptMoves[i])
-    // }
+
     return allGptMoves
 }
 
@@ -880,27 +879,49 @@ async function requestPlay(data){
 
 function makeGptMoviment(gptPlay){
     console.log(gptPlay)
-    const fromX = parseInt(gptPlay[1])
-    const fromY = parseInt(gptPlay[3])
+    var fromX = parseInt(gptPlay[1])
+    var fromY = parseInt(gptPlay[3])
     const toX = parseInt(gptPlay[7])
     const toY = parseInt(gptPlay[9])
 
-    // check if movie is valid (from top to bottom)
-    
-    // Check if there is a jump move involved
-    var didJump = false;
-    var jumpMoves = getJmpSquares(fromY, fromX,  rows, cols);
-    didJump = eatPiece(jumpMoves,fromX, fromY, toX, toY, board)
-
-    // Move the selected piece to the clicked position
     board[toX][toY] = board[fromX][fromY];
-    board[fromX][fromY] = 0;
+
+    var sumX = false
+    var sumY = false
+    if(fromX < toX){
+        sumX = true
+    }
+    if(fromY < toY){
+        sumY = true
+    }
 
 
-    
-    
-    checkIfQueen(board,toY,toX);
-    // Switch turns between red and blue players
+    var didEat = false
+    while(fromX != toX && fromY != toY){
+        if (board[fromX][fromY] == 2 || board[fromX][fromY] == 4){
+            didEat = true
+        }
+        board[fromX][fromY] = 0
+        if(sumX){
+            fromX ++
+        }else{
+            fromX --
+        }
+        if(sumY){
+            fromY ++
+        }else{
+            fromY--
+        }
+    }
+
+    if(didEat){
+        console.log(getJmpSquares(toY, toX, rows, cols))
+        if(getJmpSquares(toY, toX, rows, cols).length){
+            gptPlays(board)
+            return
+        }
+    }
+
     turn = turn == 0 ? 1 : 0;
 }
 
