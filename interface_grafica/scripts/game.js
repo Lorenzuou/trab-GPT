@@ -99,49 +99,21 @@ var cols = 8;
 
 var turn = 0; //0 for blue, 1 for red
 
-
 var gptHasPlayed = true;
-
 
 
 // Define the initial positions of the pieces
 // A 0 means an empty square, a 1 means a red piece, and a 2 means a blue piece
 
-// normal board
-// var board = [
-//     [0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 1, 0, 0, 0, 0], 
-//     [0, 0, 2, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 0]
-// ];
-    
-
-
-// var board = [
-//   [0, 1, 0, 1, 0, 1, 0, 1],
-//   [1, 0, 1, 0, 1, 0, 1, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 1],
-//   [1, 0, 2, 0, 0, 0, 1, 0],
-//   [0, 0, 0, 0, 0, 0, 0, 0],
-//   [0, 0, 0, 0, 2, 0, 2, 0],
-//   [0, 2, 0, 2, 0, 2, 0, 2],
-//   [2, 0, 2, 0, 2, 0, 2 ,0]
-// ];
-
-
-var board = [
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 3, 0, 3, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 3, 0, 0, 0, 0, 0, 0],
-  [2, 0, 0, 0, 3, 0, 0 ,0]
+board = [
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 1, 0],
+    [0, 1, 0, 1, 0, 1, 0, 1],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [2, 0, 2, 0, 2, 0, 2, 0],
+    [0, 2, 0, 2, 0, 2, 0, 2],
+    [2, 0, 2, 0, 2, 0, 2 ,0]
 ];
 
 
@@ -178,46 +150,6 @@ function boardToString(board) {
     // Return the result string
     return result;
 }
-
-function stringToBoard(str) {
-    // Split the string into an array of rows
-    var rows = str.trim().split("\n");
-
-    // Initialize the board array
-    var board = [];
-
-    // Loop through the rows
-    for (var i = 0; i < rows.length; i++) {
-        // Initialize an array for the current row
-        var row = [];
-
-        // Loop through the characters in the current row
-        for (var j = 0; j < rows[i].length; j++) {
-            // Get the character at the current position
-            var char = rows[i][j];
-
-            // Check the character and push the corresponding value to the row array
-            if (char === ".") {
-                row.push(0);
-            } else if (char === "x") {
-                row.push(1);
-            } else if (char === "o") {
-                row.push(2);
-            } else if (char === "X") {
-                row.push(3);
-            } else if (char === "O") {
-                row.push(4);
-            }
-        }
-
-        // Push the row array to the board array
-        board.push(row);
-    }
-
-    // Return the resulting board array
-    return board;
-}
-
 
 // Define a function to draw the board
 function drawBoard() {
@@ -791,41 +723,6 @@ function isValidMoveForQueen(fromX, fromY, toX, toY) {
 }
 }
 
-function gptUpdateBoard() {
-
-    // fromX = data.fromX;
-    // fromY = data.fromY;
-    // toX = data.toX;
-    // toY = data.toY;
-
-    // mock values
-    fromX = 5;
-    fromY = 2;
-    toX = 4;
-    toY = 3;
-
-    // check if movie is valid (from top to bottom)
-    if (isValidMove(fromX, fromY, toX, toY)) {
-        // Move the selected piece to the clicked position
-        board[toY][toX] = board[fromY][fromX];
-        board[fromY][fromX] = 0;
-
-        // Check if there is a jump move involved
-        if (Math.abs(toX - fromX) == 2) {
-            // Remove the jumped piece from the board
-            var jumpedX = (toX + fromX) / 2;
-            var jumpedY = (toY + fromY) / 2;
-            board[jumpedY][jumpedX] = 0;
-        }
-
-        // Switch turns between red and blue players
-        turn = turn == 0 ? 1 : 0;
-        return true;
-    }else{ 
-        return false;
-    }
-}
-
 function getAllGPTActions(){
     var allGptMoves = []
     for(i = 0; i<board.length; i++){
@@ -859,7 +756,7 @@ async function requestPlay(data){
 
     try {
        
-        const response = await fetch('http://127.0.0.1:8080/gptMove', options);
+        const response = await fetch('http://127.0.0.1:8120/gptMove', options);
         console.log('Request sent successfully.');
 
         if (response.ok) {
@@ -914,6 +811,10 @@ function makeGptMoviment(gptPlay){
         }
     }
 
+    if(fromX == 7){
+        board[fromX][fromY] = 3
+    }
+
     if(didEat){
         console.log(getJmpSquares(toY, toX, rows, cols))
         if(getJmpSquares(toY, toX, rows, cols).length){
@@ -927,8 +828,6 @@ function makeGptMoviment(gptPlay){
 
 // mock api call
 async function gptPlays(board) {
-
-    // gptUpdateBoard();
     // get the board as a string
     var boardString = boardToString(board);
     var moviments = getAllGPTActions()
