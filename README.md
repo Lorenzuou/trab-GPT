@@ -34,3 +34,7 @@ Com todas as dependências instaladas e o token exportado, podemos inicializar o
 $ python3 server.py
 ```
 Com o servidor inicializado, podemos navegar até *interface_grafica* e executar o arquivo **index.html** com o navegador web de sua preferência.
+
+### Passo a Passo
+
+> https://youtu.be/_T7XVGIP3II
